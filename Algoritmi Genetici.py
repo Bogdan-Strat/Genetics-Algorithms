@@ -1,7 +1,6 @@
 import math
 from decimal import *
 import random
-import copy
 
 def calculateNrOfBitsCodification():
     aux=precision
@@ -31,9 +30,6 @@ class Individ:
   def __init__(self):
     self.value=round(random.uniform(a,b),precision+1)
     self.cromozom=self.encode()
-
-  def setGene(self,val,idx):
-      self.cromozom[idx]=val
 
   def encode(self):
     lower_bound=math.floor(Decimal((self.value-a)/pace))
@@ -88,7 +84,6 @@ def binarySearch(v,left,right,target):
 
 def crossOver(individ1,individ2):
     breakpoint=random.randint(0,len(individ1.cromozom))
-    print(breakpoint,individ1.cromozom,individ2.cromozom)
     prefix_cromozom1=""
     prefix_cromozom2=""
 
@@ -102,10 +97,18 @@ def crossOver(individ1,individ2):
             prefix_cromozom2+=individ2.cromozom[i]
     
     individ1.cromozom="".join([x for x in list(prefix_cromozom1)])
+    individ1.value=individ1.decode()
     individ2.cromozom="".join([x for x in list(prefix_cromozom2)])
+    individ2.value=individ2.decode()
 
+    individ11=Individ()
+    individ22=Individ()
+    individ11.value=individ1.value
+    individ11.cromozom=individ1.cromozom
 
-    return [individ1,individ2]
+    individ22.value=individ2.value
+    individ22.cromozom=individ2.cromozom
+    return [individ11,individ22]
 
 def crossingOverStep(intermediary_population):
     population_for_crossing=[]
@@ -119,15 +122,11 @@ def crossingOverStep(intermediary_population):
         else:
             intermediary_population2.append(individ)
 
-    for ind in population_for_crossing:
-        print(ind.cromozom)
-
     if len(population_for_crossing)==1:
         intermediary_population2.append(population_for_crossing[0])
         population_for_crossing.pop()
         pass
     elif len(population_for_crossing)%2==1:
-        print('aici')
         intermediary_population2.append(population_for_crossing[len(population_for_crossing)-1])
         population_for_crossing.pop()
     
@@ -149,7 +148,6 @@ def mutation(intermediary_population2):
             u=random.uniform(0,1)
             if u<=prob_mutation:
                 cnt+=1
-                print(individ.value,'aici')
                 if gene=='0':
                     aux+='1'
                 else:
@@ -158,9 +156,13 @@ def mutation(intermediary_population2):
                 aux+=gene
 
         individ.cromozom="".join([x for x in list(aux)])
-        intermediary_population3.append(individ)
+        individ.value=individ.decode()
 
-    print(cnt)
+        individ1=Individ()
+        individ1.value=individ.value
+        individ1.cromozom=individ.cromozom
+        intermediary_population3.append(individ1)
+
     return intermediary_population3
 
 
@@ -169,6 +171,9 @@ def generateNextGeneration(population,use_elitist):
     intermediary_population=[]
     fitness_list=[]
     population.sort(key = lambda elem : (-getFitness(elem)))
+
+    for individ in population:
+        out.write(str(individ.value) + ' ' + str(individ.cromozom) + ' ' + str(individ.decode()) + ' ' +str(getFitness(individ))+'\n')
 
     total_fitness=0
     fitness_list.append(0)
@@ -183,6 +188,7 @@ def generateNextGeneration(population,use_elitist):
     fitness_list[len(population)]=1
 
     if use_elitist==1:
+        print(population[0].value, getFitness(population[0]))
         next_generation.append(population[0])
         
         for i in range(len(population)-1):
@@ -191,22 +197,31 @@ def generateNextGeneration(population,use_elitist):
             idx=binarySearch(fitness_list,0,len(fitness_list)-1,number)
 
             intermediary_population.append(population[idx])
-        for individ in intermediary_population:
-            print(individ.value,individ.cromozom,individ.decode(),getFitness(individ))
 
         intermediary_population2=crossingOverStep(intermediary_population)
     
-        for individ in intermediary_population2:
-            print(individ.value,individ.cromozom,individ.decode(),getFitness(individ))
 
         intermediary_population3=mutation(intermediary_population2)
-        
-        print('#################################')
-        for individ in intermediary_population3:
-            print(individ.value,individ.cromozom,individ.decode(),getFitness(individ))
+        intermediary_population3.append(next_generation[0])
+
+    elif use_elitist==0:
+        for i in range(len(population)):
+            number=random.uniform(0,1)
+            
+            idx=binarySearch(fitness_list,0,len(fitness_list)-1,number)
+
+            intermediary_population.append(population[idx])
+
+        intermediary_population2=crossingOverStep(intermediary_population)
+    
+        intermediary_population3=mutation(intermediary_population2)
+
+
+    return intermediary_population3
 
 if __name__ == '__main__':
     file=open("/home/bogdan/Documents/Cursuri facultate/Anul 2/Semestrul 2/Algoritmi Avansati/Teme/Tema 2/data.txt","r")
+    out=open("/home/bogdan/Documents/Cursuri facultate/Anul 2/Semestrul 2/Algoritmi Avansati/Teme/Tema 2/output.txt","w")
     cnt=0
     global a
     global b
@@ -271,18 +286,25 @@ if __name__ == '__main__':
 
     global nr_of_bits_codification
     nr_of_bits_codification=calculateNrOfBitsCodification()
-    print(math.ceil(nr_of_bits_codification))
 
     global pace
     pace=getPace()
-    print(pace)
 
     population=[]
     for i in range(dim_pop):
       individ=Individ()
       population.append(individ)
 
-    #for individ in population:
-    #  print(individ.value,individ.cromozom,individ.decode(),getFitness(individ))
+    print('Vrei sa folosesti criteriul elitist? Raspunde cu da sau nu')
+    x= input()
 
-    generateNextGeneration(population,1)
+    if x=='da':
+        answer=1
+    else:
+        answer=0
+
+    for i in range(steps):
+        
+        next_generation = generateNextGeneration(population,answer)
+        population = next_generation
+        out.write(str(i) + '\n')

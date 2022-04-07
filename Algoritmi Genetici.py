@@ -1,7 +1,7 @@
 import math
 from decimal import *
 import random
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def calculateNrOfBitsCodification():
     aux=precision
@@ -25,9 +25,9 @@ def getPace():
 
 
 class Individ:
-  def __init__(self):
-    self.value=round(random.uniform(a,b),precision+1)
-    self.cromozom=self.encode()
+  def __init__(self,value=None,cromozom=None):
+    self.value=value or round(random.uniform(a,b),precision+1)
+    self.cromozom=cromozom or self.encode()
 
   def encode(self):
     lower_bound=math.floor(Decimal((self.value-a)/pace))
@@ -101,16 +101,17 @@ def crossOver(individ1,individ2,make_out):
     individ2.cromozom="".join([x for x in list(prefix_cromozom2)])
     individ2.value=individ2.decode()
 
-    individ11=Individ()
-    individ22=Individ()
-    individ11.value=individ1.value
-    individ11.cromozom=individ1.cromozom
+    individ11=Individ(individ1.value,individ1.cromozom)
+    individ22=Individ(individ2.value,individ2.cromozom)
+    #individ11.value=individ1.value
+    #individ11.cromozom=individ1.cromozom
 
-    individ22.value=individ2.value
-    individ22.cromozom=individ2.cromozom
+    #individ22.value=individ2.value
+    #individ22.cromozom=individ2.cromozom
 
     if make_out==1:
         out.write('Rezultat    ' + individ11.cromozom + ' ' + individ22.cromozom + '\n')
+    
     return [individ11,individ22]
 
 def crossingOverStep(intermediary_population,make_out):
@@ -127,7 +128,10 @@ def crossingOverStep(intermediary_population,make_out):
 
 
         if number<=prob_crossover:
-            population_for_crossing.append(individ)
+            ind=Individ(individ.value,individ.cromozom)
+            #ind.value=individ.value
+            #ind.cromozom=individ.cromozom
+            population_for_crossing.append(ind)
             index_list.append(cnt)
 
             if make_out==1:
@@ -182,9 +186,9 @@ def mutation(intermediary_population2,make_out):
         individ.cromozom="".join([x for x in list(aux)])
         individ.value=individ.decode()
 
-        individ1=Individ()
-        individ1.value=individ.value
-        individ1.cromozom=individ.cromozom
+        individ1=Individ(individ.value,individ.cromozom)
+        #individ1.value=individ.value
+        #individ1.cromozom=individ.cromozom
         intermediary_population3.append(individ1)
 
     return intermediary_population3
@@ -232,13 +236,12 @@ def generateNextGeneration(population,use_elitist,make_out):
     if use_elitist==1:
         aux=[]
         for individ in population:
-            ind=Individ()
-            ind.value=individ.value
-            ind.cromozom=individ.cromozom
+            ind=Individ(individ.value,individ.cromozom)
+            #ind.value=individ.value
+            #ind.cromozom=individ.cromozom
             aux.append(ind)
 
         aux.sort(key = lambda elem : (-getFitness(elem)))
-        print(aux[0].value, getFitness(aux[0]))
         next_generation.append(aux[0])
         
         for i in range(len(population)-1):
@@ -331,8 +334,8 @@ def generateNextGeneration(population,use_elitist,make_out):
     return intermediary_population3
 
 if __name__ == '__main__':
-    file=open("/home/bogdan/Documents/Cursuri facultate/Anul 2/Semestrul 2/Algoritmi Avansati/Teme/Tema 2/data.txt","r")
-    out=open("/home/bogdan/Documents/Cursuri facultate/Anul 2/Semestrul 2/Algoritmi Avansati/Teme/Tema 2/output.txt","w")
+    file=open("data.txt","r")
+    out=open("output.txt","w")
     cnt=0
     global a
     global b
@@ -393,11 +396,9 @@ if __name__ == '__main__':
         cnt+=1
     
     
-    print(dim_pop,a,b,coef_grad2,coef_grad1,coef_grad0,precision,prob_crossover,prob_mutation,steps,sep=" ")
 
     global nr_of_bits_codification
     nr_of_bits_codification=calculateNrOfBitsCodification()
-    print('nr biti: ',nr_of_bits_codification)
 
     global pace
     pace=getPace()
@@ -430,8 +431,9 @@ if __name__ == '__main__':
             maximum_evolution.append(maxi)
             next_generation = generateNextGeneration(population,answer,0)
         population = next_generation
-
+ 
     
     plt.plot(maximum_evolution)
     plt.ylabel('Maximum evolution')
     plt.show()
+    

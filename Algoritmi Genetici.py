@@ -5,9 +5,6 @@ import random
 def calculateNrOfBitsCodification():
     aux=precision
 
-    aux=1
-
-
     p=1
     while aux>0:
         p=p*10
@@ -110,16 +107,27 @@ def crossOver(individ1,individ2):
     individ22.cromozom=individ2.cromozom
     return [individ11,individ22]
 
-def crossingOverStep(intermediary_population):
+def crossingOverStep(intermediary_population,make_out):
     population_for_crossing=[]
     intermediary_population2=[]
-
+    cnt=0
     for individ in intermediary_population:
         number=random.uniform(0,1)
+        
+        cnt+=1
+        if make_out==1:
+            out.write(str(cnt) + ': ' + individ.cromozom + ' u=' + str(number))
+
 
         if number<=prob_crossover:
             population_for_crossing.append(individ)
+
+            if make_out==1:
+                out.write('<' + str(prob_crossover) + ' participa\n')
         else:
+
+            if make_out==1:
+                out.write('\n')
             intermediary_population2.append(individ)
 
     if len(population_for_crossing)==1:
@@ -132,6 +140,7 @@ def crossingOverStep(intermediary_population):
     
     i=0
     while i<len(population_for_crossing):
+        
         elm=crossOver(population_for_crossing[i],population_for_crossing[i+1])
         intermediary_population2.append(elm[0])
         intermediary_population2.append(elm[1])
@@ -166,14 +175,19 @@ def mutation(intermediary_population2):
     return intermediary_population3
 
 
-def generateNextGeneration(population,use_elitist):
+def generateNextGeneration(population,use_elitist,make_out):
     next_generation=[]
     intermediary_population=[]
     fitness_list=[]
-    population.sort(key = lambda elem : (-getFitness(elem)))
 
-    for individ in population:
-        out.write(str(individ.value) + ' ' + str(individ.cromozom) + ' ' + str(individ.decode()) + ' ' +str(getFitness(individ))+'\n')
+    if make_out==1:
+        cnt=0
+        out.write('Populatia initiala:\n')
+        for individ in population:
+            cnt+=1
+            out.write('    '+str(cnt)+': ' + str(individ.cromozom) + ' x= '+ str(individ.value)+ ' f='+ str(getFitness(individ))+'\n')
+        out.write('\n\n')
+    
 
     total_fitness=0
     fitness_list.append(0)
@@ -181,15 +195,36 @@ def generateNextGeneration(population,use_elitist):
         total_fitness+=getFitness(individ)
 
     fit=0
+    cnt=0
+    if make_out==1:
+        out.write('Probabilitati de selectie:\n')
     for individ in population:
+        if make_out==1:
+            cnt+=1
+            out.write('cromozom     '+str(cnt)+ ' probabilitate '+ str(getFitness(individ)/total_fitness)+'\n')
         fit+=getFitness(individ)/total_fitness
         fitness_list.append(fit)
+    
+    if make_out==1:
+        out.write('\n')
+        out.write('Intervale probabilitati selectie:\n')
+        for interval in fitness_list:
+            out.write(str(interval)+' ')
+        out.write('\n')
 
     fitness_list[len(population)]=1
 
     if use_elitist==1:
-        print(population[0].value, getFitness(population[0]))
-        next_generation.append(population[0])
+        aux=[]
+        for individ in population:
+            ind=Individ()
+            ind.value=individ.value
+            ind.cromozom=individ.cromozom
+            aux.append(ind)
+
+        aux.sort(key = lambda elem : (-getFitness(elem)))
+        print(aux[0].value, getFitness(aux[0]))
+        next_generation.append(aux[0])
         
         for i in range(len(population)-1):
             number=random.uniform(0,1)
@@ -198,8 +233,25 @@ def generateNextGeneration(population,use_elitist):
 
             intermediary_population.append(population[idx])
 
-        intermediary_population2=crossingOverStep(intermediary_population)
+            if make_out==1:
+                out.write('u= '+str(number)+' selectam cromozomul '+str(idx+1)+'\n')
+        
+        if make_out==1:
+            cnt=0
+            out.write('Dupa selectie:\n')
+            for individ in intermediary_population:
+                cnt+=1
+                out.write('    '+str(cnt)+': '+ individ.cromozom +  ' x= ' + str(individ.value)+ ' f=' + str(getFitness(individ))+ '\n')
+
+
+        if make_out==1:
+            out.write('\nProbabilitatea de incrucisare ' + str(prob_crossover) + '\n')
+
+        intermediary_population2=crossingOverStep(intermediary_population,make_out)
     
+        
+            
+            
 
         intermediary_population3=mutation(intermediary_population2)
         intermediary_population3.append(next_generation[0])
@@ -286,6 +338,7 @@ if __name__ == '__main__':
 
     global nr_of_bits_codification
     nr_of_bits_codification=calculateNrOfBitsCodification()
+    print('nr biti: ',nr_of_bits_codification)
 
     global pace
     pace=getPace()
@@ -304,7 +357,8 @@ if __name__ == '__main__':
         answer=0
 
     for i in range(steps):
-        
-        next_generation = generateNextGeneration(population,answer)
+        if i==0:
+            next_generation=generateNextGeneration(population,answer,1)
+        else:
+            next_generation = generateNextGeneration(population,answer,0)
         population = next_generation
-        out.write(str(i) + '\n')

@@ -1,6 +1,7 @@
 import math
 from decimal import *
 import random
+import matplotlib.pyplot as plt
 
 def calculateNrOfBitsCodification():
     aux=precision
@@ -79,11 +80,13 @@ def binarySearch(v,left,right,target):
     else:
         return -1
 
-def crossOver(individ1,individ2):
+def crossOver(individ1,individ2,make_out):
     breakpoint=random.randint(0,len(individ1.cromozom))
     prefix_cromozom1=""
     prefix_cromozom2=""
 
+    if make_out==1:
+        out.write(individ1.cromozom + ' ' + individ2.cromozom + ' punct   ' + str(breakpoint) + '\n')
     for i in range(len(individ1.cromozom)):
         if i<breakpoint:
             prefix_cromozom1+=individ2.cromozom[i]
@@ -105,11 +108,15 @@ def crossOver(individ1,individ2):
 
     individ22.value=individ2.value
     individ22.cromozom=individ2.cromozom
+
+    if make_out==1:
+        out.write('Rezultat    ' + individ11.cromozom + ' ' + individ22.cromozom + '\n')
     return [individ11,individ22]
 
 def crossingOverStep(intermediary_population,make_out):
     population_for_crossing=[]
     intermediary_population2=[]
+    index_list=[]
     cnt=0
     for individ in intermediary_population:
         number=random.uniform(0,1)
@@ -121,6 +128,7 @@ def crossingOverStep(intermediary_population,make_out):
 
         if number<=prob_crossover:
             population_for_crossing.append(individ)
+            index_list.append(cnt)
 
             if make_out==1:
                 out.write('<' + str(prob_crossover) + ' participa\n')
@@ -139,28 +147,35 @@ def crossingOverStep(intermediary_population,make_out):
         population_for_crossing.pop()
     
     i=0
+    if make_out==1:
+        out.write('\n')
+
     while i<len(population_for_crossing):
-        
-        elm=crossOver(population_for_crossing[i],population_for_crossing[i+1])
+        if make_out==1:
+            out.write('Recombinare dintre cromozomul %d cu cromozomul %d:\n' % (index_list[i] , index_list[i+1]))
+        elm=crossOver(population_for_crossing[i],population_for_crossing[i+1],make_out)
         intermediary_population2.append(elm[0])
         intermediary_population2.append(elm[1])
         i+=2
     
     return intermediary_population2
 
-def mutation(intermediary_population2):
+def mutation(intermediary_population2,make_out):
     intermediary_population3=[]
     cnt=0
     for individ in intermediary_population2:
         aux=""
+        cnt+=1
         for gene in individ.cromozom:
             u=random.uniform(0,1)
             if u<=prob_mutation:
-                cnt+=1
                 if gene=='0':
                     aux+='1'
                 else:
                     aux+='0'
+                
+                if make_out==1:
+                    out.write('%d\n' % cnt)
             else:
                 aux+=gene
 
@@ -249,11 +264,25 @@ def generateNextGeneration(population,use_elitist,make_out):
 
         intermediary_population2=crossingOverStep(intermediary_population,make_out)
     
-        
+        if make_out==1:
+            out.write('Dupa recombinare:\n')
+            cnt=0
+            for individ in intermediary_population2:
+                cnt+=1
+                out.write('   ' + str(cnt) + ': ' + individ.cromozom + ' x= ' + str(individ.value) + ' f=' + str(getFitness(individ)) + '\n')
             
-            
+        if make_out==1:
+            out.write('\nProbabilitatea de mutatie pentru fiecare gena %d\nAufost modificati cromozomii:\n' % prob_mutation) 
 
-        intermediary_population3=mutation(intermediary_population2)
+        intermediary_population3=mutation(intermediary_population2,make_out)
+        
+        if make_out==1:
+            out.write('\nDupa mutatie:\n')
+            cnt=0
+            for individ in intermediary_population3:
+                cnt+=1
+                out.write('   ' + str(cnt) + ': ' + individ.cromozom + ' x= '  + str(individ.value) + ' f=' + str(getFitness(individ)) + '\n')
+
         intermediary_population3.append(next_generation[0])
 
     elif use_elitist==0:
@@ -263,11 +292,41 @@ def generateNextGeneration(population,use_elitist,make_out):
             idx=binarySearch(fitness_list,0,len(fitness_list)-1,number)
 
             intermediary_population.append(population[idx])
+        
+            if make_out==1:
+                out.write('u= '+str(number)+' selectam cromozomul '+str(idx+1)+'\n')
 
-        intermediary_population2=crossingOverStep(intermediary_population)
+        if make_out==1:
+            cnt=0
+            out.write('Dupa selectie:\n')
+            for individ in intermediary_population:
+                cnt+=1
+                out.write('    '+str(cnt)+': '+ individ.cromozom +  ' x= ' + str(individ.value)+ ' f=' + str(getFitness(individ))+ '\n')
+
+
+        if make_out==1:
+            out.write('\nProbabilitatea de incrucisare ' + str(prob_crossover) + '\n')
+
+        intermediary_population2=crossingOverStep(intermediary_population,make_out)
     
-        intermediary_population3=mutation(intermediary_population2)
+        if make_out==1:
+            out.write('Dupa recombinare:\n')
+            cnt=0
+            for individ in intermediary_population2:
+                cnt+=1
+                out.write('   ' + str(cnt) + ': ' + individ.cromozom + ' x= ' + str(individ.value) + ' f=' + str(getFitness(individ)) + '\n')
+            
+        if make_out==1:
+            out.write('\nProbabilitatea de mutatie pentru fiecare gena ' + str(prob_mutation) + '\nAufost modificati cromozomii:\n') 
 
+        intermediary_population3=mutation(intermediary_population2,make_out)
+
+        if make_out==1:
+            out.write('\nDupa mutatie:\n')
+            cnt=0
+            for individ in intermediary_population3:
+                cnt+=1
+                out.write('   ' + str(cnt) + ': ' + individ.cromozom + ' x= '  + str(individ.value) + ' f=' + str(getFitness(individ)) + '\n')
 
     return intermediary_population3
 
@@ -356,9 +415,23 @@ if __name__ == '__main__':
     else:
         answer=0
 
+    maximum_evolution=[]
     for i in range(steps):
         if i==0:
             next_generation=generateNextGeneration(population,answer,1)
+            out.write('\nEvolutia maximului:\n')
         else:
+            
+            maxi=0
+            for individ in next_generation:
+                if getFitness(individ)>maxi:
+                    maxi=getFitness(individ)
+            out.write(str(maxi) + '\n')
+            maximum_evolution.append(maxi)
             next_generation = generateNextGeneration(population,answer,0)
         population = next_generation
+
+    
+    plt.plot(maximum_evolution)
+    plt.ylabel('Maximum evolution')
+    plt.show()

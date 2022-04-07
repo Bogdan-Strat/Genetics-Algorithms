@@ -1,7 +1,7 @@
 import math
 from decimal import *
 import random
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 def calculateNrOfBitsCodification():
     aux=precision

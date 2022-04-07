@@ -334,8 +334,8 @@ def generateNextGeneration(population,use_elitist,make_out):
     return intermediary_population3
 
 if __name__ == '__main__':
-    file=open("/home/bogdan/Documents/Cursuri facultate/Anul 2/Semestrul 2/Algoritmi Avansati/Teme/Tema 2/data.txt","r")
-    out=open("/home/bogdan/Documents/Cursuri facultate/Anul 2/Semestrul 2/Algoritmi Avansati/Teme/Tema 2/output.txt","w")
+    file=open("data.txt","r")
+    out=open("output.txt","w")
     cnt=0
     global a
     global b
